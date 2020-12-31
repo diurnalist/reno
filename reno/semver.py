@@ -33,6 +33,8 @@ def compute_next_version(conf):
         if to_consider == '*working-copy*':
             to_include.append(to_consider)
             continue
+        if conf.release_tag_prefix:
+            to_consider = to_consider.replace(conf.release_tag_prefix, '')
         # This check relies on PEP 440 versioning
         parsed = version.Version(to_consider)
         if parsed.post:
@@ -61,16 +63,22 @@ def compute_next_version(conf):
 
     LOG.debug('base version %s', base_version)
 
+    def _canonical_tag(tag):
+        if conf.release_tag_prefix:
+            return conf.release_tag_prefix + tag
+        else:
+            return tag
+
     inc_minor = False
     inc_patch = False
     for ver in to_include:
-        for filename, sha in ldr[ver]:
+        for filename, sha in ldr[_canonical_tag(ver)]:
             notes = ldr.parse_note_file(filename, sha)
             for section in conf.semver_major:
                 if notes.get(section, []):
                     LOG.debug('found breaking change in %r section of %s',
                               section, filename)
-                    return '{}.0.0'.format(base_version.major + 1)
+                    return _canonical_tag('{}.0.0'.format(base_version.major + 1))
             for section in conf.semver_minor:
                 if notes.get(section, []):
                     LOG.debug('found feature in %r section of %s',
@@ -92,7 +100,7 @@ def compute_next_version(conf):
     if inc_minor:
         minor += 1
         patch = 0
-    return '{}.{}.{}'.format(major, minor, patch)
+    return _canonical_tag('{}.{}.{}'.format(major, minor, patch))
 
 
 def semver_next_cmd(args, conf):

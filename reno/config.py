@@ -95,6 +95,11 @@ _OPTIONS = [
         identify '.0rc1' as the value of the group 'pre_release'.
         """)),
 
+    Opt('release_tag_prefix', None,
+        textwrap.dedent("""\
+        Foo
+        """)),
+
     Opt('branch_name_re', 'stable/.+',
         textwrap.dedent("""\
         The pattern for names for branches that are relevant when
@@ -119,6 +124,14 @@ _OPTIONS = [
         "stable/mitaka" by removing the "-eol" suffix
         via closed_branch_tag_re and setting the prefix
         to "stable/".
+        """)),
+
+    Opt('report_version_format', '{0}',
+        textwrap.dedent("""\
+        A format describing how the version title should
+        be displayed in the output report. String formatting
+        tokens like '{0}' can be used to index against the
+        capture groups defined in release_tag_re.
         """)),
 
     Opt('sections',

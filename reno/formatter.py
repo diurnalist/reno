@@ -63,6 +63,8 @@ def format_report(loader, config, versions_to_include, title=None,
             version_title = config.unreleased_version_title or version
         else:
             version_title = version
+        if config.release_tag_prefix:
+            version_title = version_title.replace(config.release_tag_prefix, '')
         report.append(_anchor(version_title, title, branch))
         report.append('')
         report.append(version_title)

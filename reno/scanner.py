@@ -514,6 +514,7 @@ class Scanner(object):
             self.conf.release_tag_re,
             flags=re.VERBOSE | re.UNICODE,
         )
+        self.release_tag_prefix = self.conf.release_tag_prefix
         self.pre_release_tag_re = re.compile(
             self.conf.pre_release_tag_re,
             flags=re.VERBOSE | re.UNICODE,
@@ -578,8 +579,18 @@ class Scanner(object):
         return self._repo.get_walker(branch_head)
 
     def _get_valid_tags_on_commit(self, sha):
-        return [tag for tag in self._repo.get_tags_on_commit(sha)
-                if self.release_tag_re.match(tag)]
+        valid_tags = []
+        for tag in self._repo.get_tags_on_commit(sha):
+            if self.release_tag_prefix:
+                if tag.startswith(self.release_tag_prefix):
+                    norm_tag = tag.replace(self.release_tag_prefix, '')
+                    if self.release_tag_re.match(norm_tag):
+                        valid_tags.append(tag)
+                # Ignore any tags not with the prefix
+                continue
+            if self.release_tag_re.match(tag):
+                valid_tags.append(tag)
+        return valid_tags
 
     def _get_tags_on_branch(self, branch):
         "Return a list of tag names on the given branch."
